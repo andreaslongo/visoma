@@ -1,0 +1,10 @@
+# Ignore everything by default
+**
+
+# Allow the following explicitly
+# !Cargo.lock
+# !Cargo.toml
+!pixi.lock
+!pixi.toml
+!pyproject.toml
+!src

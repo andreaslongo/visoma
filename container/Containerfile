@@ -1,0 +1,179 @@
+# Development and build container image
+#
+# * For DEV to have a layer of isolation from the host system. This is a good
+#   idea when running unknown code e.g. from third party libraries. The container
+#   only has limited access to the host, e.g. it cannot access /home and others.
+# * For PROD as a base image for building/compiling the project.
+#
+# Efforts for contributions to the project should be as low as possible:
+#
+# * The DEV image is based on Debian slim and only has a tool for package
+#   management installed. That tool should be the only requirement for working
+#   with the project.
+# * All dependencies for the project should be installed via the package management
+#   tool if possible. This enables working with the project also without a
+#   container.
+
+ARG BASE_IMAGE
+
+
+###############################################################################
+# Dev container image
+###############################################################################
+
+FROM $BASE_IMAGE as tools
+
+# Update OS packages and install OS level dependencies if required
+# curl, ca-certificates: for installing the package management tool
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
+    && apt-get upgrade --assume-yes --no-install-recommends \
+    && apt-get install --assume-yes --no-install-recommends \
+        ca-certificates \
+        curl \
+    && apt-get clean \
+    && apt-get purge --assume-yes --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get check \
+    && rm -rf /var/lib/apt/lists/*
+
+# Switch to non-root user
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && useradd --create-home --no-log-init appuser
+USER appuser
+WORKDIR /home/appuser
+
+# Install package management tool
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && curl -fsSL https://pixi.sh/install.sh | bash
+
+
+
+FROM $BASE_IMAGE AS dev
+
+# Update OS packages and install OS level dependencies if required.
+# NOTE: Additional dependencies should be installed via the package management
+# tool if possible.
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
+    && apt-get upgrade --assume-yes --no-install-recommends \
+    && apt-get clean \
+    && apt-get purge --assume-yes --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get check \
+    && rm -rf /var/lib/apt/lists/*
+
+# Switch to non-root user
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && useradd --create-home --no-log-init appuser
+USER appuser
+WORKDIR /home/appuser
+
+# Install package management tool
+COPY \
+    --from=tools \
+    --chown=root:root \
+    --chmod=0755 \
+        /home/appuser/.pixi/bin/pixi \
+        /usr/local/bin/pixi
+
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && echo 'eval "$(pixi completion --shell bash)"' >> ~/.bashrc \
+    && pixi info
+
+
+###############################################################################
+# Prod container image
+###############################################################################
+
+FROM dev AS build
+
+# Copy the source code, pixi.toml, pyproject.toml, Cargo.toml, Cargo.lock and pixi.lock to the container.
+# Controlled by Containerignore file.
+WORKDIR /home/appuser/app
+COPY --chown=appuser:appuser . .
+
+# TODO: How to access bind mounts as non-root user during build? We use this to
+# cache dependency downloads.
+# Workaround: Run as root.
+USER root
+
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && pixi info \
+    && pixi -vvv --no-progress run build \
+    && pixi -vvv --no-progress run install
+
+# Create the shell-hook bash script to activate the environment.
+# Extend the script to run the command passed to the container.
+RUN pixi shell-hook --environment prod > ./shell-hook.sh
+RUN echo 'exec "$@"' >> ./shell-hook.sh
+
+
+
+FROM $BASE_IMAGE AS prod
+
+# Update OS packages and install OS level dependencies if required.
+# NOTE: Additional dependencies should be installed via the package management
+# tool if possible.
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
+    && apt-get upgrade --assume-yes --no-install-recommends \
+    && apt-get clean \
+    && apt-get purge --assume-yes --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get check \
+    && rm -rf /var/lib/apt/lists/*
+
+# Switch to non-root user
+RUN set -o errexit \
+    set -o nounset \
+    set -o pipefail \
+    set -o xtrace \
+    && useradd --create-home --no-log-init appuser
+USER appuser
+WORKDIR /home/appuser/app
+
+# Copy the prod environment into the prod container.
+# NOTE: The "prefix" (path) needs to stay the same as in the build container.
+COPY \
+    --from=build \
+    --chown=appuser:appuser \
+        /home/appuser/app/.pixi/envs/prod \
+        /home/appuser/app/.pixi/envs/prod
+COPY \
+    --from=build \
+    --chown=appuser:appuser \
+    --chmod=0755 \
+        /home/appuser/app/shell-hook.sh \
+        /home/appuser/app/shell-hook.sh
+
+# Set the entrypoint to the shell-hook script. This activates the environment
+# and runs the command.
+ENTRYPOINT ["/bin/bash", "/home/appuser/app/shell-hook.sh"]
+
+# Default command to run. Can be changed during container startup.
+CMD ["python", "-m", "template_python"]

@@ -1,0 +1,85 @@
+= Visoma
+
+A CLI utility and Python library for interacting with Visoma
+
+== Getting started
+
+Build and install the program:
+
+[,console]
+----
+$ pixi build && pixi install
+----
+
+Export your settings:
+
+[,console]
+----
+export VISOMA_HOST=
+export VISOMA_USER=
+export VISOMA_PASSWORD=
+----
+
+Run the program:
+
+[,console]
+----
+$ pixi run cli --help
+$ pixi run cli tickets list
+----
+
+// == Features
+
+== Changelog
+
+All notable changes will be documented here.
+
+The format is based on https://keepachangelog.com/en/1.1.0/[Keep a Changelog],
+and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Versioning].
+
+=== [Unreleased]
+
+=== [0.1.0]
+
+Initial release.
+
+== Contributing
+
+The best way to get started is to build and run a local dev container.
+
+You can use https://podman.io[Podman] or any other OCI compliant container manager.
+The dev container has everything you need for working with the project.
+
+[,console]
+----
+$ container/build.sh
+$ container/run.sh
+----
+
+From inside the container, you can then run some tasks.
+
+[,console]
+----
+$ pixi run dev      # run checks and tests <- run this after making changes.
+$ pixi run build    # builds the app
+$ pixi run install  # installs the app in an isolated environment
+$ pixi run start    # runs the app
+$ pixi run clean    # remove cached project files
+$ pixi clean        # remove environments
+----
+
+Tasks run in dependency isolated environments.
+The pixi tool manages all project dependencies for you.
+
+The container is recommended for running code in isolation, but it is not required.
+You can also https://pixi.sh/latest/#installation[install the package manager] and work directly with the project if you like.
+
+=== Useful resources
+
+* https://github.com/andreaslongo/learn-python
+
+== License
+
+Copyright (C) 2024 Andreas Longo
+
+GNU General Public License v3.0 or later
