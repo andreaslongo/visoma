@@ -1,6 +1,6 @@
 = Visoma
 
-A CLI utility and Python library for interacting with Visoma
+A CLI utility and Python library for interacting with https://www.visoma.net/tickets[Visoma].
 
 == Getting started
 
@@ -37,7 +37,7 @@ All notable changes will be documented here.
 The format is based on https://keepachangelog.com/en/1.1.0/[Keep a Changelog],
 and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
-=== [Unreleased]
+// === [Unreleased]
 
 === [0.1.0]
 
