@@ -2,7 +2,16 @@ import httpx
 import pytest
 
 from visoma.workdays import WorkdaysManager
+from visoma.workdays import extract_workday_id_from_html
 import tests
+
+
+def test_extract_workday_id_from_html():
+    html = 'id="btnworkend" href="/workend/submitworkend/id/154942/">'
+    assert extract_workday_id_from_html(html) == 154942
+
+    html = 'id="btnworkend-reopen" href="/workend/submitworkend/id/154942/reopen/1/">'
+    assert extract_workday_id_from_html(html) == 154942
 
 
 def test_visoma_client(client):
