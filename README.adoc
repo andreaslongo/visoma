@@ -37,7 +37,11 @@ All notable changes will be documented here.
 The format is based on https://keepachangelog.com/en/1.1.0/[Keep a Changelog],
 and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Versioning].
 
-// === [Unreleased]
+=== [Unreleased]
+
+==== Added
+
+* Possibility for installing the package via https://pip.pypa.io/en/stable/getting-started/#common-tasks[pip].
 
 === [0.1.0]
 

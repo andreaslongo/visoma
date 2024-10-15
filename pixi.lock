@@ -3437,7 +3437,13 @@ packages:
   name: visoma
   version: 0.1.0
   path: .
-  sha256: 6f3807edb09d7259a47c7177b870845b9fcd0bb6d14e8de8e1b85af8d028c5a1
+  sha256: 3690f9b0280e0b8c3a6e0da8f77588e0af6ee723a612185118504c71c00f4073
+  requires_dist:
+  - attrs>=24.2.0,<25
+  - cattrs>=24.1.1,<25
+  - fire>=0.6.0,<0.7
+  - httpx>=0.27.2,<0.28
+  requires_python: '>=3.12.5,<4'
   editable: true
 - kind: conda
   name: vs2015_runtime
