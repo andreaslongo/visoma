@@ -23,7 +23,7 @@ def test_visoma_client(client):
 def test_close(client, respx_mock):
     route_1 = respx_mock.get(
         f"https://{tests.VISOMA_HOST}/workend/index/date/2024-01-08"
-    ).mock(httpx.Response(200, text="/workend/submitworkend/id/1/"))
+    ).mock(httpx.Response(200, text="<html>/workend/submitworkend/id/1/</html>"))
 
     route_2 = respx_mock.get(
         f"https://{tests.VISOMA_HOST}/workend/submitworkend/id/1"
