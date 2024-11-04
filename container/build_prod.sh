@@ -8,6 +8,7 @@
 # * https://github.com/debuerreotype/docker-debian-artifacts
 # * https://github.com/docker-library/official-images
 
+readonly local base_image=docker.io/library/debian:bookworm-slim
 readonly local script_dir=$( cd "$( dirname "${BASH_SOURCE[0]:-${(%):-%x}}" )" && pwd )
 readonly local parent_dir=$(dirname ${script_dir})
 
@@ -18,7 +19,7 @@ readonly local parent_dir=$(dirname ${script_dir})
 # Use --pull=always to do this also for images without `latest` tags.
 # NOTE: Named volumes not supported during build, only bind-mounts are supported.
 podman image build \
-    --build-arg=BASE_IMAGE=docker.io/library/debian:bookworm-slim \
+    --build-arg=BASE_IMAGE="${base_image}" \
     --file="${script_dir}/Containerfile" \
     --ignorefile="${script_dir}/Containerignore_prod" \
     --no-cache \
