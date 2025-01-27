@@ -1,10 +1,18 @@
 from attrs import define
 from datetime import datetime
 import cattrs
+import logging
 
 from visoma.http import HttpClient
 from visoma.lib import VisomaResponse
 from visoma.lib import visoma_params_from_filters_with_limit
+from visoma.lib import structure
+
+
+log = logging.getLogger(__name__)
+
+# cattrs.register_structure_hook(datetime, lambda v, _: datetime.strptime(v, "%d.%m.%Y %H:%M:%S"))
+# cattrs.register_unstructure_hook(datetime, lambda v: v.strftime("%d.%m.%Y %H:%M:%S"))
 
 
 @define(str=True)
@@ -30,7 +38,7 @@ class Ticket:
 
     @classmethod
     def from_dict(cls, data):
-        return cattrs.structure(data, cls)
+        return structure(data, cls)
 
     def to_dict(self):
         d = cattrs.unstructure(self)
@@ -53,7 +61,8 @@ class TicketRequest:
 
     @classmethod
     def from_dict(cls, data):
-        return cattrs.structure(data, cls)
+        return structure(data, cls)
+
 
     def to_dict(self):
         d = cattrs.unstructure(self)
@@ -99,8 +108,12 @@ class TicketsManager:
 
     def create(self, request: TicketRequest):
         """Create a ticket."""
+        log.debug("Creating ticket")
+        log.debug(f"request={request}")
         response = self.client.post("/api2/ticket/", data=request.to_dict())
+        log.debug(f"response={response}")
         try:
             return VisomaResponse.from_dict(response)
         except cattrs.errors.ClassValidationError as err:
+            log.error(f"ClassValidationError: {err.args}")
             raise ValueError(response["Message"]) from err

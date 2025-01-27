@@ -1,9 +1,18 @@
 from attrs import define
 from datetime import date
+from datetime import datetime
 import cattrs
+import logging
 
 from visoma.http import HttpClient
 from visoma.lib import visoma_params_from_filters_with_limit
+from visoma.lib import structure
+
+
+log = logging.getLogger(__name__)
+
+cattrs.register_structure_hook(date, lambda v, _: datetime.strptime(v, "%d.%m.%Y").date())
+cattrs.register_unstructure_hook(date, lambda v: v.strftime("%d.%m.%Y"))
 
 
 @define
@@ -22,7 +31,7 @@ class Project:
 
     @classmethod
     def from_dict(cls, data):
-        return cattrs.structure(data, cls)
+        return structure(data, cls)
 
     def to_dict(self):
         d = cattrs.unstructure(self)
@@ -37,6 +46,7 @@ class ProjectsManager:
 
     def get(self, filters: dict[str, str] | None = None) -> Project:
         """Returns a single project."""
+        log.debug("Getting project")
         try:
             projects = self.list(filters=filters)
         except ValueError as err:
@@ -44,7 +54,6 @@ class ProjectsManager:
 
         if len(projects) > 1:
             raise ValueError(f"More than one project found: {projects}")
-
         project = projects[0]
         return project
 
@@ -58,10 +67,9 @@ class ProjectsManager:
             projects.
             filters: Criteria to filter the project list.
         """
+        log.debug("Listing projects")
         params = visoma_params_from_filters_with_limit(filters, limit)
         response = self.client.get("/api2/project/search/", params=params)
+        log.debug(f"response={response}")
 
-        try:
-            return [Project.from_dict(item) for item in response]
-        except cattrs.errors.ClassValidationError as err:
-            raise ValueError(response["Message"]) from err
+        return [Project.from_dict(item) for item in response]

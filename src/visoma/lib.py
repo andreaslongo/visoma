@@ -9,6 +9,20 @@ class FiltersError(Exception):
     pass
 
 
+def structure(data, cls):
+
+    log.debug("Structuring data")
+    log.debug(f"cls={cls}")
+    log.debug(f"data={data}")
+    try:
+        r = cattrs.structure(data, cls)
+        log.debug(f"result={r}")
+        return r
+    except cattrs.errors.ClassValidationError as err:
+        log.error(f"ClassValidationError: {err.args}")
+        raise
+
+
 @define
 class VisomaResponse:
     """Represents a response from the Visoma API."""
