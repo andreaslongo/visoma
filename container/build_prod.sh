@@ -17,7 +17,10 @@ readonly local parent_dir=$(dirname ${script_dir})
 # Use --build-arg=arg=value to pass variable values to the Containerfile
 # NOTE: `latest` tags do always trigger auto-pull.
 # Use --pull=always to do this also for images without `latest` tags.
-# NOTE: Named volumes not supported during build, only bind-mounts are supported.
+# NOTE: We use cache dirs to speed up the build process. Named volumes not
+# supported during build, only bind-mounts are. We mount at /root to workaround
+# a non-root user issue, see Containerfile > USER root.
+# TODO: Use container build cache instead of bind mounts?
 podman image build \
     --build-arg=BASE_IMAGE="${base_image}" \
     --file="${script_dir}/Containerfile" \
@@ -30,5 +33,7 @@ podman image build \
     --volume "${HOME}/.cache/huggingface:/root/.cache/huggingface:z,rw" \
     --volume "${HOME}/.cache/pre-commit:/root/.cache/pre-commit:z,rw" \
     --volume "${HOME}/.cache/rattler:/root/.cache/rattler:z,rw" \
+    --volume "${HOME}/.cargo:/root/.cargo:z,rw" \
     --volume "${HOME}/.pixi:/root/.pixi:z,rw" \
+    --volume "${HOME}/.rustup:/root/.rustup:z,rw" \
         "${parent_dir}"

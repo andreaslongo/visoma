@@ -99,7 +99,7 @@ RUN set -o errexit \
     set -o nounset \
     set -o pipefail \
     set -o xtrace \
-    && echo 'eval "$(pixi completion --shell bash)"' >> ~/.bashrc \
+    && echo 'eval "$(pixi completion --shell bash)"' >> .bashrc \
     && pixi info
 
 
@@ -119,6 +119,7 @@ COPY --chown=appuser:appuser . .
 # Workaround: Run as root.
 USER root
 
+# TODO: Use pixi run --frozen or --locked.
 RUN set -o errexit \
     set -o nounset \
     set -o pipefail \
